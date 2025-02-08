@@ -65,10 +65,11 @@ void chatbot(int myId, char *myName) {
       gets1(msgBuf);
 
       printf("I heard you said: %s\n", msgBuf);
-while(strcmp(msgBuf, ":EXIT") != 0 && strcmp(msgBuf, ":exit") != 0&&strcmp(msgBuf, ":CHANGE") != 0 && strcmp(msgBuf, ":change") != 0){
-      gets1(msgBuf);
-      printf("I heard you said: %s\n", msgBuf);
-}
+      while (strcmp(msgBuf, ":EXIT") != 0 && strcmp(msgBuf, ":exit") != 0 &&
+             strcmp(msgBuf, ":CHANGE") != 0 && strcmp(msgBuf, ":change") != 0) {
+        gets1(msgBuf);
+        printf("I heard you said: %s\n", msgBuf);
+      }
 
       // pass the msg to the next one on the ring
       write(fd[myId][1], msgBuf, MAX_MSG_LEN);
