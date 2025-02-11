@@ -3,7 +3,7 @@
 #include "user/user.h"
 
 #define MAX_MSG_LEN 512
-#define MAX_NUM_CHATBOT 10
+#define MAX_NUM_CHATBOT 5
 
 int fd[MAX_NUM_CHATBOT + 1][2];
 
