@@ -54,9 +54,9 @@ void chatbot(int myId, char *myName, char **names) {
     char recvMsg[MAX_MSG_LEN];
     read(fd[myId - 1][0], recvMsg, MAX_MSG_LEN);
 
-    if (strcmp(recvMsg, ":EXIT") != 0 &&
-        strcmp(recvMsg, ":exit") !=
-            0 && strcmp(recvMsg, myName) == 0) { // if the received msg is not EXIT/exit: continue chatting
+    if (strcmp(recvMsg, ":EXIT") != 0 && strcmp(recvMsg, ":exit") != 0 &&
+        strcmp(recvMsg, myName) ==
+            0) { // if the received msg is not EXIT/exit: continue chatting
 
       printf("Hello, this is chatbot %s. Please type:\n", myName);
 
@@ -71,26 +71,26 @@ void chatbot(int myId, char *myName, char **names) {
         printf("I heard you said: %s\n", msgBuf);
       }
 
-
       // if user inputs EXIT/exit: exit myself
       if (strcmp(msgBuf, ":EXIT") == 0 || strcmp(msgBuf, ":exit") == 0) {
-		write(fd[myId][1], msgBuf, MAX_MSG_LEN);
+        write(fd[myId][1], msgBuf, MAX_MSG_LEN);
         exit(0);
       }
 
-	  if (strcmp(msgBuf, ":CHANGE") == 0 || strcmp(msgBuf, ":change") == 0){
-		printf("Please type the name of the bot you would like to chat with next:\n");
-		gets1(msgBuf);
-		if(strcmp(msgBuf, myName) != 0){
-		  printf("Okay I will send you to chat with %s", msgBuf);
-		  write(fd[myId][1], msgBuf, MAX_MSG_LEN);
-		}
-	  }
+      if (strcmp(msgBuf, ":CHANGE") == 0 || strcmp(msgBuf, ":change") == 0) {
+        printf("Please type the name of the bot you would like to chat with "
+               "next:\n");
+        gets1(msgBuf);
+        if (strcmp(msgBuf, myName) != 0) {
+          printf("Okay I will send you to chat with %s", msgBuf);
+          write(fd[myId][1], msgBuf, MAX_MSG_LEN);
+        }
+      }
 
     } else { // if receives EXIT/exit: pass the msg down and exit myself
       write(fd[myId][1], recvMsg, MAX_MSG_LEN);
       if (strcmp(recvMsg, ":EXIT") == 0 || strcmp(recvMsg, ":exit") == 0) {
-		write(fd[myId][1], msgBuf, MAX_MSG_LEN);
+        write(fd[myId][1], msgBuf, MAX_MSG_LEN);
         exit(0);
       }
       exit(0);
