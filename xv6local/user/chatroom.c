@@ -38,7 +38,7 @@ void gets1(char msgBuf[MAX_MSG_LEN]) {
 }
 
 // script for chatbot (child process)
-void chatbot(int myId, char *myName) {
+void chatbot(int myId, char *myName, char **names) {
   // close un-used pipe descriptors
   for (int i = 0; i < myId - 1; i++) {
     close(fd[i][0]);
@@ -56,7 +56,7 @@ void chatbot(int myId, char *myName) {
 
     if (strcmp(recvMsg, ":EXIT") != 0 &&
         strcmp(recvMsg, ":exit") !=
-            0) { // if the received msg is not EXIT/exit: continue chatting
+            0 && strcmp(recvMsg, myName) == 0) { // if the received msg is not EXIT/exit: continue chatting
 
       printf("Hello, this is chatbot %s. Please type:\n", myName);
 
@@ -71,16 +71,28 @@ void chatbot(int myId, char *myName) {
         printf("I heard you said: %s\n", msgBuf);
       }
 
-      // pass the msg to the next one on the ring
-      write(fd[myId][1], msgBuf, MAX_MSG_LEN);
 
       // if user inputs EXIT/exit: exit myself
       if (strcmp(msgBuf, ":EXIT") == 0 || strcmp(msgBuf, ":exit") == 0) {
+		write(fd[myId][1], msgBuf, MAX_MSG_LEN);
         exit(0);
       }
 
+	  if (strcmp(msgBuf, ":CHANGE") == 0 || strcmp(msgBuf, ":change") == 0){
+		printf("Please type the name of the bot you would like to chat with next:\n");
+		gets1(msgBuf);
+		if(strcmp(msgBuf, myName) != 0){
+		  printf("Okay I will send you to chat with %s", msgBuf);
+		  write(fd[myId][1], msgBuf, MAX_MSG_LEN);
+		}
+	  }
+
     } else { // if receives EXIT/exit: pass the msg down and exit myself
       write(fd[myId][1], recvMsg, MAX_MSG_LEN);
+      if (strcmp(recvMsg, ":EXIT") == 0 || strcmp(recvMsg, ":exit") == 0) {
+		write(fd[myId][1], msgBuf, MAX_MSG_LEN);
+        exit(0);
+      }
       exit(0);
     }
   }
@@ -99,7 +111,7 @@ int main(int argc, char *argv[]) {
     pipe1(fd[i]); // create one new pipe for each chatbot
     // to create child proc #i (emulating chatbot #i)
     if (fork1() == 0) {
-      chatbot(i, argv[i]);
+      chatbot(i, argv[i], argv);
     }
   }
 
