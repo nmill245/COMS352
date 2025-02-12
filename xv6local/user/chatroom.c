@@ -1,5 +1,5 @@
-#include "kernel/stat.h"
 #include "kernel/types.h"
+#include "kernel/stat.h"
 #include "user/user.h"
 
 #define MAX_MSG_LEN 512
@@ -57,22 +57,26 @@ void chatbot(int myId, char *myName, char **names, int len) {
   }
   close(fd[myId - 1][1]);
   close(fd[myId][0]);
+	int repeat = 0;
+    char recvMsg[MAX_MSG_LEN];
 
   // loop
   while (1) {
-
     // to get msg from the previous chatbot
-    char recvMsg[MAX_MSG_LEN];
+    if(!repeat){
     read(fd[myId - 1][0], recvMsg, MAX_MSG_LEN);
+}
 
     if (strcmp(recvMsg, ":EXIT") != 0 && strcmp(recvMsg, ":exit") != 0 &&
         strcmp(recvMsg, myName) ==
             0) { // if the received msg is not EXIT/exit: continue chatting
-
+	if(!repeat){
       printf("Hello, this is chatbot %s. Please type:\n", myName);
+}
 
       // get a string from std input and save it to msgBuf
       char msgBuf[MAX_MSG_LEN];
+	repeat = 0;
       gets1(msgBuf);
 
       printf("I heard you said: %s\n", msgBuf);
@@ -98,18 +102,22 @@ void chatbot(int myId, char *myName, char **names, int len) {
           gets1(msgBuf);
         }
         if (strcmp(msgBuf, myName) != 0) {
-          printf("Okay I will send you to chat with %s", msgBuf);
+          printf("Okay I will send you to chat with %s\n", msgBuf);
           write(fd[myId][1], msgBuf, MAX_MSG_LEN);
+			strcpy(recvMsg, msgBuf);
         }
+		else {
+			printf("You are currently chatting with %s, please type another message\n", myName);
+			repeat = 1;
+		}
       }
 
     } else { // if receives EXIT/exit: pass the msg down and exit myself
+		printf("Hello from bot %s\n, we recieved %s\n", myName, recvMsg);
       write(fd[myId][1], recvMsg, MAX_MSG_LEN);
       if (strcmp(recvMsg, ":EXIT") == 0 || strcmp(recvMsg, ":exit") == 0) {
-        write(fd[myId][1], msgBuf, MAX_MSG_LEN);
         exit(0);
       }
-      exit(0);
     }
   }
 }
@@ -127,7 +135,11 @@ int main(int argc, char *argv[]) {
     pipe1(fd[i]); // create one new pipe for each chatbot
     // to create child proc #i (emulating chatbot #i)
     if (fork1() == 0) {
+<<<<<<< HEAD
       chatbot(i, argv[i], argv, argc - 1);
+=======
+      chatbot(i, argv[i], argv, argc);
+>>>>>>> 7748d24 (Updated chatroom and chatsample to work)
     }
   }
 
@@ -140,7 +152,7 @@ int main(int argc, char *argv[]) {
   }
 
   // send the START msg to the first chatbot
-  write(fd[0][1], ":START", 6);
+  write(fd[0][1], argv[1], 6);
 
   // loop: when receive a token from predecessor, pass it to successor
   while (1) {
