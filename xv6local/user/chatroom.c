@@ -13,6 +13,17 @@ void panic(char *s) {
   exit(1);
 }
 
+int contains(char* str, char **list, int n){
+
+for(int i = 0; i < n; i++){
+	if(strcmp(str, list[i]) == 0){
+		return 1;
+	}
+}
+
+return 0;
+}
+
 // create a new process
 int fork1(void) {
   int pid;
@@ -38,7 +49,7 @@ void gets1(char msgBuf[MAX_MSG_LEN]) {
 }
 
 // script for chatbot (child process)
-void chatbot(int myId, char *myName, char **names) {
+void chatbot(int myId, char *myName, char **names, int len) {
   // close un-used pipe descriptors
   for (int i = 0; i < myId - 1; i++) {
     close(fd[i][0]);
@@ -81,6 +92,10 @@ void chatbot(int myId, char *myName, char **names) {
         printf("Please type the name of the bot you would like to chat with "
                "next:\n");
         gets1(msgBuf);
+		while(!(contains(msgBuf, names, len))){
+			printf("There is no bot named %s. Please type a valid bot name\n", msgBuf);
+			gets1(msgBuf);
+		}
         if (strcmp(msgBuf, myName) != 0) {
           printf("Okay I will send you to chat with %s", msgBuf);
           write(fd[myId][1], msgBuf, MAX_MSG_LEN);
@@ -111,7 +126,7 @@ int main(int argc, char *argv[]) {
     pipe1(fd[i]); // create one new pipe for each chatbot
     // to create child proc #i (emulating chatbot #i)
     if (fork1() == 0) {
-      chatbot(i, argv[i], argv);
+      chatbot(i, argv[i], argv, argc-1);
     }
   }
 

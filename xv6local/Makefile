@@ -139,7 +139,7 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-	$U/_chatsampe\
+	$U/_chatsample\
 	$U/_chatroom\
 
 fs.img: mkfs/mkfs README $(UPROGS)
