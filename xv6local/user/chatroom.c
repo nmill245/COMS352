@@ -135,11 +135,7 @@ int main(int argc, char *argv[]) {
     pipe1(fd[i]); // create one new pipe for each chatbot
     // to create child proc #i (emulating chatbot #i)
     if (fork1() == 0) {
-<<<<<<< HEAD
-      chatbot(i, argv[i], argv, argc - 1);
-=======
       chatbot(i, argv[i], argv, argc);
->>>>>>> 7748d24 (Updated chatroom and chatsample to work)
     }
   }
 
