@@ -72,8 +72,10 @@ uint64 sys_uptime(void) {
   return xticks;
 }
 uint64 sys_getppid(void) {
-  // TODO
-  return 0;
+  proc *cur_proc, parent_proc;
+  cur_proc = myproc();
+  parent_proc = cur_proc->parent;
+  return parent_proc->pid;
 }
 uint64 sys_getcpids(void) {
   // TODO
