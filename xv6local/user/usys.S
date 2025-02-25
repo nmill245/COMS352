@@ -105,3 +105,23 @@ uptime:
  li a7, SYS_uptime
  ecall
  ret
+.global getppid
+getppid:
+ li a7, SYS_getppid
+ ecall
+ ret
+.global getcpids
+getcpids:
+ li a7, SYS_getcpids
+ ecall
+ ret
+.global getpaddr
+getpaddr:
+ li a7, SYS_getpaddr
+ ecall
+ ret
+.global gettraphistory
+gettraphistory:
+ li a7, SYS_gettraphistory
+ ecall
+ ret
