@@ -5,6 +5,9 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+
+struct spinlock t_wait_lock;
+
 uint64 sys_exit(void) {
   int n;
   argint(0, &n);
@@ -71,11 +74,31 @@ uint64 sys_uptime(void) {
   return xticks;
 }
 uint64 sys_getppid(void) {
+//get the process->parent->id
 	return myproc()->parent->pid;
 }
 uint64 sys_getcpids(void) {
-  // TODO
-  return 0;
+	int n;
+    int i = 0;
+	uint64 arr;
+	struct proc* p;
+	struct proc* mp;
+
+	//get arguments
+	argaddr(0, &arr);
+	argint(1, &n);
+	mp = myproc();
+
+
+  acquire(&t_wait_lock);
+  for(p = proc; p < &proc[NPROC]; p++) {
+	if(p->parent == mp){
+		copyout(mp->pagetable, arr+sizeof(i)*i, (char *)&(p->pid), sizeof(p->pid));
+	i++;
+}
+}
+  release(&t_wait_lock);
+  return i;
 }
 uint64 sys_getpaddr(void) {
   // TODO
