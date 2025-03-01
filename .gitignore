@@ -4,3 +4,4 @@ _*
 *.asm
 *.sym
 */fs.img
+kernel/kernel

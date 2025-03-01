@@ -75,7 +75,11 @@ uint64 sys_uptime(void) {
 }
 uint64 sys_getppid(void) {
 //get the process->parent->id
-	return myproc()->parent->pid;
+uint64 id;
+  acquire(&t_wait_lock);
+id = myproc()->parent->pid;
+  release(&t_wait_lock);
+	return id;
 }
 uint64 sys_getcpids(void) {
 	int n;
@@ -101,8 +105,17 @@ uint64 sys_getcpids(void) {
   return i;
 }
 uint64 sys_getpaddr(void) {
-  // TODO
-  return 0;
+	uint64 vaddr;
+	uint64 paddr;
+	argaddr(0, &vaddr);
+	pte_t *pte;
+	pte = walk(myproc()->pagetable, vaddr, 0);
+	if(pte!=0 && (*pte & PTE_V)){
+		paddr = PTE2PA(*pte)|(vaddr & 0xFFF);
+		return paddr;
+	} else{
+	  return 0;
+	}
 }
 uint64 sys_gettraphistory(void) {
   // TODO
