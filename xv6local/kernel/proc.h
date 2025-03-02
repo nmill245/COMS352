@@ -104,9 +104,11 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-};
+
+//proc counts
 int trapcount; //total number of traps
 int syscallcount; //total number of system calls
 int devintcount; //total number of hardware(device) interupts
 int timerintcount; //total number of timer interrupts
+};
 extern struct proc proc[NPROC];

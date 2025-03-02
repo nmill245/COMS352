@@ -118,6 +118,16 @@ uint64 sys_getpaddr(void) {
 	}
 }
 uint64 sys_gettraphistory(void) {
-  // TODO
+	uint64 totaladdr, saddr, daddr, timeaddr;
+struct proc* mp;
+mp = myproc();
+	argaddr(0, &totaladdr);
+	argaddr(1, &saddr);
+	argaddr(2, &daddr);
+	argaddr(3, &timeaddr);
+	copyout(mp->pagetable, totaladdr,(char *)&(mp->trapcount), sizeof(mp->trapcount));
+	copyout(mp->pagetable, saddr,(char *)&(mp->syscallcount), sizeof(mp->syscallcount));
+	copyout(mp->pagetable, daddr,(char *)&(mp->devintcount), sizeof(mp->devintcount));
+	copyout(mp->pagetable, timeaddr,(char *)&(mp->timerintcount), sizeof(mp->timerintcount));
   return 0;
 }
