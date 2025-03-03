@@ -1,3 +1,25 @@
+Name: Noah Miller
+
+This project was to add in getppid, getcpids, getpaddr, gettraphistory. These four functions operate as follows:
+int getppid(): returns the id of the calling process' parent.
+int getcpids(int *cpids, int max): returns the number of child process' of the current running process. It will return up to max, and will add them to the cpids arr.
+int getpaddr(void *vaddr): takes in a pointer to a virtual address location and returns either the physical address or 0
+int gettraphistory(int *trapcount, int *syscallcount, int *devintcount, int *timerintcount):
+	returns 0 as a dummy values. Fills each of the arguments as stated:
+	trapcount is the total number of traps called on the current process,
+	syscallcount is the total number of system call interrupts called on the current process,
+	devintcount is the total number of device interrupts,
+	timerintcount is the total number of timer interrupts
+
+The files that have been updated:
+	kernel/syscall.h
+	kernel/syscall.c
+	kernel/sysproc.c
+	kernel/proc.h
+	kernel/trap.c
+	user/usys.pl
+	user/user.h
+
 xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
 Version 6 (v6).  xv6 loosely follows the structure and style of v6,
 but is implemented for a modern RISC-V multiprocessor using ANSI C.

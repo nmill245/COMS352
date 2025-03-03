@@ -22,6 +22,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+//add syscalls
 int getppid(void);
 int getcpids(int *cpids, int max);
 int getpaddr(void *va);
