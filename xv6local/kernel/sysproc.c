@@ -6,6 +6,7 @@
 #include "spinlock.h"
 #include "proc.h"
 
+//aquire a waitlock in this file
 struct spinlock t_wait_lock;
 
 uint64 sys_exit(void) {
@@ -74,16 +75,17 @@ uint64 sys_uptime(void) {
   return xticks;
 }
 uint64 sys_getppid(void) {
-//get the process->parent->id
-uint64 id;
+	//get the process->parent->id
+	uint64 id;
   acquire(&t_wait_lock);
-id = myproc()->parent->pid;
+	id = myproc()->parent->pid;
   release(&t_wait_lock);
 	return id;
 }
+
 uint64 sys_getcpids(void) {
 	int n;
-    int i = 0;
+	int count = 0;
 	uint64 arr;
 	struct proc* p;
 	struct proc* mp;
@@ -91,40 +93,63 @@ uint64 sys_getcpids(void) {
 	//get arguments
 	argaddr(0, &arr);
 	argint(1, &n);
+
+	//get current process
 	mp = myproc();
 
-
+	//aquire the lock to access parents of all processes
   acquire(&t_wait_lock);
-  for(p = proc; p < &proc[NPROC]; p++) {
-	if(p->parent == mp){
-		copyout(mp->pagetable, arr+sizeof(i)*i, (char *)&(p->pid), sizeof(p->pid));
-	i++;
-}
-}
+	
+	//loop through every process checking if child
+  for(p = proc; p < &proc[NPROC] && count < n; p++) {
+		if(p->parent == mp){
+			//append to the return array
+			copyout(mp->pagetable, arr+sizeof(count)*count, (char *)&(p->pid), sizeof(p->pid));
+			count++;
+		}
+	}
+	//release lock
   release(&t_wait_lock);
-  return i;
+  return count;
 }
+
 uint64 sys_getpaddr(void) {
+	//create the virtual and actual address
 	uint64 vaddr;
 	uint64 paddr;
+
+	//recieve the pointer to the vaddr
 	argaddr(0, &vaddr);
+	
+	//get the actual address space from the virtual address
 	pte_t *pte;
 	pte = walk(myproc()->pagetable, vaddr, 0);
+
+	//check if valid actual address
 	if(pte!=0 && (*pte & PTE_V)){
+		//parse physical address with virtual address
 		paddr = PTE2PA(*pte)|(vaddr & 0xFFF);
 		return paddr;
 	} else{
+		//when not valid return 0
 	  return 0;
 	}
 }
+
 uint64 sys_gettraphistory(void) {
+	//declare the pointers to be used for return values
 	uint64 totaladdr, saddr, daddr, timeaddr;
-struct proc* mp;
-mp = myproc();
+	//find the current process
+	struct proc* mp;
+	mp = myproc();
+
+	//get arguments
 	argaddr(0, &totaladdr);
 	argaddr(1, &saddr);
 	argaddr(2, &daddr);
 	argaddr(3, &timeaddr);
+
+	//upload arguments
 	copyout(mp->pagetable, totaladdr,(char *)&(mp->trapcount), sizeof(mp->trapcount));
 	copyout(mp->pagetable, saddr,(char *)&(mp->syscallcount), sizeof(mp->syscallcount));
 	copyout(mp->pagetable, daddr,(char *)&(mp->devintcount), sizeof(mp->devintcount));

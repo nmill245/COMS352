@@ -105,10 +105,12 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 
-//proc counts
+//store proc counts
 int trapcount; //total number of traps
 int syscallcount; //total number of system calls
 int devintcount; //total number of hardware(device) interupts
 int timerintcount; //total number of timer interrupts
 };
+
+//allow other files to read all the current processes
 extern struct proc proc[NPROC];

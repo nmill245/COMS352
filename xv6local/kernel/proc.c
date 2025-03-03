@@ -168,10 +168,11 @@ freeproc(struct proc *p)
   p->chan = 0;
   p->killed = 0;
   p->xstate = 0;
+	//reset trap counts
 	p->trapcount = 0;
-p->syscallcount = 0;
-p->devintcount = 0;
-p->timerintcount = 0;
+	p->syscallcount = 0;
+	p->devintcount = 0;
+	p->timerintcount = 0;
   p->state = UNUSED;
 }
 
