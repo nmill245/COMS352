@@ -4,4 +4,5 @@ _*
 *.asm
 *.sym
 */fs.img
+indent.log
 kernel/kernel
