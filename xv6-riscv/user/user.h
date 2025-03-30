@@ -27,6 +27,10 @@ int getppid(void);
 int getcpids(int *cpids, int max);
 int getpaddr(void *va);
 int gettraphistory(int *trapcount, int *syscallcount, int *devintcount, int *timerintcount);
+int nice(int new_nice);
+int getruntime(int *runtime, int *vruntim);
+int startcfs(int latency, int max, int min);
+int stopcfs(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -40,3 +40,7 @@ entry("getppid");
 entry("getcpids");
 entry("getpaddr");
 entry("gettraphistory");
+entry("nice");
+entry("getruntime");
+entry("startcfs");
+entry("stopcfs");

@@ -156,3 +156,49 @@ uint64 sys_gettraphistory(void) {
 	copyout(mp->pagetable, timeaddr,(char *)&(mp->timerintcount), sizeof(mp->timerintcount));
   return 0;
 }
+
+uint64 sys_nice(void) {
+	int new_nice;
+	struct proc* mp;
+	mp = myproc();
+
+	argint(0, &new_nice);
+	acquire(&mp->lock);
+	if(new_nice < 20 && new_nice > -21){
+		mp->nice = new_nice;	
+	}
+  release(&mp->lock);
+	return mp->nice;
+}
+	
+uint64 sys_getruntime(void){
+	uint64 runtime, vruntime;
+	argaddr(0, &runtime);
+	argaddr(1, &vruntime);
+	
+	struct proc* mp;
+	mp = myproc();
+
+	copyout(mp->pagetable, runtime, (char *)&(mp->runtime), sizeof(mp->runtime));
+	copyout(mp->pagetable, vruntime, (char *)&(mp->vruntime), sizeof(mp->vruntime));
+	return 0;
+}
+
+uint64 sys_startcfs(void){
+	int late;
+	int max;
+	int min;
+	argint(0, &late);
+	argint(1, &max);
+	argint(2, &min);
+	cfs = 1;
+	cfs_sched_latency=late;
+	cfs_max_timeslice=max;
+	cfs_min_timeslice=min;
+	return 1;
+}
+uint64 sys_stopcfs(void){
+	cfs = 0;
+	return 1;
+}
+

@@ -90,6 +90,10 @@ extern uint64 sys_getppid(void);
 extern uint64 sys_getcpids(void);
 extern uint64 sys_getpaddr(void);
 extern uint64 sys_gettraphistory(void);
+extern uint64 sys_nice(void);
+extern uint64 sys_getruntime(void);
+extern uint64 sys_startcfs(void);
+extern uint64 sys_stopcfs(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -120,6 +124,10 @@ static uint64 (*syscalls[])(void) = {
     [SYS_gettraphistory] sys_gettraphistory,
     [SYS_getcpids] sys_getcpids,
     [SYS_getpaddr] sys_getpaddr,
+		[SYS_nice] sys_nice,
+		[SYS_getruntime] sys_getruntime,
+		[SYS_startcfs] sys_startcfs,
+		[SYS_stopcfs] sys_stopcfs,
 };
 
 void syscall(void) {

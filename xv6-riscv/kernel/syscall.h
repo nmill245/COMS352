@@ -25,3 +25,8 @@
 #define SYS_getcpids 23
 #define SYS_getpaddr 24
 #define SYS_gettraphistory 25
+#define SYS_nice 26
+#define SYS_getruntime 27
+#define SYS_startcfs 28
+#define SYS_stopcfs 29
+
