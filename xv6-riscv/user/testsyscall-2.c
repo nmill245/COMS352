@@ -32,7 +32,7 @@ main(int argc, char* argv[])
 	//set up parent process and start cfs
 	nice(3);
 	startcfs(100,20,2);
-	printf("\n[START] Process (pid:%d) has started cfs!\n\n", getpid());
+	//printf("\n[START] Process (pid:%d) has started cfs!\n\n", getpid());
 
 	//create 10 child processes: first 5 have lower priority than the last 5
         int ret=0;
@@ -45,7 +45,7 @@ main(int argc, char* argv[])
                 }
         }
 	int mypid = getpid();
-        printf("[PRIORITY] process (pid=%d): has nice = %d\n", mypid,nice(-30));
+        //printf("[PRIORITY] process (pid=%d): has nice = %d\n", mypid,nice(-30));
 
 
 	//do intensive computation

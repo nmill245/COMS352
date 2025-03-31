@@ -726,7 +726,7 @@ struct proc* shortest_runtime_proc() {
 	for(p = proc; p < &proc[NPROC]; p++){
 		if(p->state == RUNNABLE){
 			//printf("Process id: %d, vruntime: %d\n", p->pid, p->vruntime);
-			if(p->vruntime < min){
+			if(p->vruntime <= min){
 				final = p;
 				min = p->vruntime;
 			}
