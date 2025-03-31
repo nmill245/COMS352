@@ -104,22 +104,4 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-
-	//store proc counts
-	int trapcount; //total number of traps
-	int syscallcount; //total number of system calls
-	int devintcount; //total number of hardware(device) interupts
-	int timerintcount; //total number of timer interrupts
-
-	//fields for linux scheduler
-	int nice; //nice score -20 to 19
-	int runtime; //total actual runtime
-	int vruntime; //total virtual runtime
 };
-
-//allow other files to read all the current processes
-extern struct proc proc[NPROC];
-extern int cfs;
-extern int cfs_sched_latency;
-extern int cfs_max_timeslice;
-extern int cfs_min_timeslice;
