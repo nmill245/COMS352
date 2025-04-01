@@ -104,4 +104,12 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+	int nice;
+	int vruntime;
+	int runtime;
 };
+extern int cfs;
+extern int cfs_sched_latency;
+extern int cfs_max_timeslice;
+extern int cfs_min_timeslice;

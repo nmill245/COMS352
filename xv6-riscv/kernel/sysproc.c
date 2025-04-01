@@ -91,3 +91,50 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+uint64 sys_nice(void)
+{
+	int nice;
+	struct proc *mp;
+	argint(0, &nice);
+	mp = myproc();
+	if(nice < 20 && nice > -21){
+		mp->nice = nice;
+	}
+	return mp->nice;
+}
+
+uint64 sys_getruntime(void){
+	uint64 runtime;
+	uint64 vruntime;
+	struct proc* mp;
+	
+	mp = myproc();
+	
+	argaddr(0, &runtime);
+	argaddr(1, &vruntime);	
+
+	copyout(mp->pagetable, runtime, (char*)&(mp->runtime), sizeof(mp->runtime));
+	copyout(mp->pagetable, vruntime, (char*)&(mp->vruntime), sizeof(mp->vruntime));
+	return 0;
+}
+
+uint64 sys_startcfs(void){
+	int late;
+	int max;
+	int min;
+	
+	argint(0, &late);
+	argint(1, &max);
+	argint(2, &min);
+	
+	cfs = 1;
+	cfs_sched_latency = late;
+	cfs_max_timeslice = max;
+	cfs_min_timeslice = min;
+	return 1;
+}
+
+uint64 sys_stopcfs(void){
+	cfs = 0;
+	return 1;
+}

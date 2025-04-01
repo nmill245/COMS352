@@ -18,6 +18,26 @@ struct spinlock pid_lock;
 extern void forkret(void);
 static void freeproc(struct proc *p);
 
+int cfs = 0;
+int cfs_sched_latency = 128;
+int cfs_max_timeslice = 16;
+int cfs_min_timeslice = 1;
+
+int nice_to_weight[40] = {
+	88761, 71755, 56483, 36291,
+	29154, 23254, 18705, 11915,
+	9548, 7620, 6100, 4904, 3906,
+	3121, 2401, 1991, 1586, 1277,
+	1024, 820, 655, 526, 423,
+	335, 272, 215, 172, 137,
+	110, 87, 70, 56, 45,
+	36, 29, 23, 18, 15,
+};
+
+struct proc *cfs_current_proc = 0;
+int cfs_proc_timeslice_len = 0;
+int cfs_proc_timeslice_left = 0;
+
 extern char trampoline[]; // trampoline.S
 
 // helps ensure that wakeups of wait()ing
@@ -169,6 +189,9 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+	p->nice = 0;
+	p->vruntime = 0;
+	p->runtime = 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -433,7 +456,7 @@ wait(uint64 addr)
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
 }
-
+/*
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -479,6 +502,7 @@ scheduler(void)
     }
   }
 }
+*/
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
@@ -693,3 +717,131 @@ procdump(void)
     printf("\n");
   }
 }
+
+int weight_sum(){
+	int sum = 0;
+	struct proc *p;
+	for(p = proc; p < &proc[NPROC]; p++){
+		if(p->state == RUNNABLE){
+			sum += nice_to_weight[p->nice+20];
+		}
+	}
+	return sum;
+}
+
+struct proc* shortest_runtime_proc(){
+	int min = 100000000;
+	struct proc *final = 0;
+	struct proc *p;
+	for(p = proc; p < &proc[NPROC]; p++){
+		if(p->state == RUNNABLE){
+			if(p->vruntime < min){
+				min = p->vruntime;
+				final = p;
+		}
+	}
+	}
+	return final;
+}
+
+void old_scheduler(struct cpu *c){
+	struct proc *p;
+	for(p = proc; p < &proc[NPROC]; p++){
+		acquire(&p->lock);
+		if(p->state == RUNNABLE){
+			p->state = RUNNING;
+			c->proc = p;
+			swtch(&c->context, &p->context);
+			c->proc = 0;
+		}
+		release(&p->lock);
+	}
+}
+void cfs_scheduler(struct cpu *c){
+	c->proc = 0;
+
+	cfs_proc_timeslice_left = cfs_proc_timeslice_left - 1;
+	if(cfs_proc_timeslice_left > 0 && cfs_current_proc->state == RUNNABLE){
+		c->proc = cfs_current_proc;
+}else if(cfs_proc_timeslice_left == 0 || (cfs_current_proc != 0 && cfs_current_proc->state != RUNNABLE)){
+	int weight = nice_to_weight[cfs_current_proc->nice+20];
+	int inc = (cfs_proc_timeslice_len - cfs_proc_timeslice_left) * 1024 / weight;
+	if (inc < 1) inc = 1;
+	cfs_current_proc->vruntime += inc;
+
+	cfs_current_proc->runtime += (cfs_proc_timeslice_len - cfs_proc_timeslice_left);
+
+	//TODO increment current process actual runtime
+	
+	printf("[DEBUG CFS] Process %d used %d ticks of its assigned timeslice (totally %d ticks) and is swapped out!\n",
+		cfs_current_proc->pid,
+		cfs_proc_timeslice_len - cfs_proc_timeslice_left,
+		cfs_proc_timeslice_len
+	);
+}
+	if(c->proc == 0){
+		struct proc *small = shortest_runtime_proc();
+		if(small > 0){
+			cfs_current_proc = small;
+			c->proc = small;
+			int weight = nice_to_weight[small->nice+20];
+			int total_weight = weight_sum();	
+			//printf("Process weight: %d, Total weight: %d\n", weight, total_weight);
+			int time = (cfs_sched_latency * weight) / total_weight;
+			//printf("Time slice requested: %d\n", time);
+			if(time < cfs_min_timeslice) time = cfs_min_timeslice;
+			if(time > cfs_max_timeslice) time = cfs_max_timeslice;
+			//printf("Time slice recieved: %d\n", time);
+			cfs_proc_timeslice_len = time;
+			cfs_proc_timeslice_left = time;	
+		}
+		/*
+		struct proc* smallest;
+		smallest = shortest_runtime_proc();
+		//printf("Got smallest: %p\n", smallest);
+		if(smallest > 0){
+			int time;
+			//printf("Updating process pointer\n");
+			c->proc = smallest;
+			//printf("Updated current process\n");
+			cfs_current_proc = smallest;
+			int total_weight = weight_sum();
+			int process_weight = nice_to_weight[smallest->nice+20];
+			//printf("Process weight: %d, Total weight: %d\n", process_weight, total_weight);
+			time = cfs_sched_latency * process_weight / total_weight;
+			//printf("Calculated timeslice: %d\n", time);
+			if(time < cfs_min_timeslice) time = cfs_min_timeslice;
+			if(time > cfs_max_timeslice) time = cfs_max_timeslice;
+			cfs_proc_timeslice_len = time;
+			cfs_proc_timeslice_left = time;
+		}
+		*/
+		//TODO
+		// (1) call shortest_runtime_proc() to find smallest vruntime
+		// (2) If (1) returns a valid process, set up curr_proc, proc_timeslice, and c->proc
+		// Timeslice: ceil(cfs_sched_latency * curr_weight / sum_weight and len should be in [min_timeslice, max_timeslice]	
+		// (3) if (1) returns 0 do nothing
+
+		if (c->proc > 0){
+			printf("[DEBUG CFS] Process %d will run for a timeslice of %d ticks next!\n", c->proc->pid, cfs_proc_timeslice_len);
+			acquire(&c->proc->lock);
+			c->proc->state=RUNNING;
+			swtch(&c->context, &c->proc->context);
+			release(&c->proc->lock);
+		}
+	}
+}
+void scheduler(void) {
+	struct cpu *c = mycpu();
+	c->proc = 0;
+	for(;;){
+		//avoid deadlock by ensuring devices can interrupt
+		intr_on();
+		if(cfs){
+			cfs_scheduler(c);
+		}else{
+			old_scheduler(c);
+		}
+	}
+}
+	

@@ -22,6 +22,11 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+//new system calls
+int nice(int new_nice);
+int getruntime(int *runtime, int *vruntime);
+int startcfs(int latency, int max, int min);
+int stopcfs(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
