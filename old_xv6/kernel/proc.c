@@ -809,16 +809,6 @@ void cfs_scheduler(struct cpu *c){
 		}
 	}
 }
-void start_cfs(int late, int max, int min){
-	cfs_sched_latency = late;
-	cfs_max_timeslice = max;
-	cfs_min_timeslice = min;
-	cfs = 1;
-}
-void stop_cfs(){
-	printf("Stopping\n");
-	cfs = 0;
-}
 
 void scheduler(void){
 	struct cpu *c = mycpu();
