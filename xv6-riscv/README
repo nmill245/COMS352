@@ -1,3 +1,33 @@
+Name: Noah Miller
+
+THe goal of this project was to implement the fair linux scheduler in the xv6 kernel using a cfs switch in order to update which scheduler to use. This was done with 2 helper functions weight_sum and shortest_runtime_proc, and 1 function cfs_scheduler. There were also 4 system calls implemented to make this possible, nice, getruntime, startcfs, stopcfs. 
+The functions and system calls work as follows:
+	int weight_sum() - Iterates through all processes to sum the weights, as transformed from a procs nice value in the weight_to_nice[40], of RUNNABLE processes and returns the sum.
+	struct proc *shortest_runtime_proc() - Iterates through all RUNNABLE processes and returns the one with the smallest vruntime value in the proc. Will return 0 if no proc found.
+	cfs_scheduler - Implements the linux fair scheduling policy. 
+	int nice(int new_nice) - updates the caller's nice value to new_nice if new_nice is in [-20, 19]. Returns the nice value of the process after trying to update it.
+	int getruntime(int *runtime, int *vruntime) - updates runtime with the value of the caller's runtime and vruntime with the caller's vruntime. Returns 0 on success.
+	int startcfs(int latency, int max, int min) - Updates cfs to 1, stating to start using the cfs_scheduler. It also updates cfs_sched_latency to latency, cfs_max_timeslice to max and cfs_min_timeslice to min. It returns 1.
+	int stopcfs(void) - Updates cfs to 0, stating to start using round robin scheduling, and returns 1.
+
+Important Variables:
+	int cfs - 1 if using cfs_scheduler, 0 if using round robin
+	int cfs_sched_latency - the amount of time needed to run reach process once on average
+	int cfs_max_timeslice - the maximum timeslice a single process is allowed to take
+	int cfs_min_timeslice - the minimum timeslice a single process is allowed to take
+	struct proc *cfs_current_proc - The current process running
+	cfs_proc_timeslice_len - How much time is left in the time slice for the current process
+	cfs_proc_timeslice_left - The full length of timeslice the running process wants
+
+This project was to add in The files that have been updated:
+	kernel/syscall.h
+	kernel/syscall.c
+	kernel/sysproc.c
+	kernel/proc.h
+	kernely/proc.c
+	user/usys.pl
+	user/user.h
+
 xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
 Version 6 (v6).  xv6 loosely follows the structure and style of v6,
 but is implemented for a modern RISC-V multiprocessor using ANSI C.

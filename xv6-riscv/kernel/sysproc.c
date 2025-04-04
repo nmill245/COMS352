@@ -91,6 +91,9 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+// attempt to update caller's nice value to the first argument (new_nice)
+// new_nice must be in [-20, 19]
+// returns the nice value of the caller after attempting update
 uint64 sys_nice(void)
 {
 	int nice;
@@ -103,21 +106,31 @@ uint64 sys_nice(void)
 	return mp->nice;
 }
 
+// Update the first argument (runtime) to the callers runtime value
+// Update the second arugment (vruntime) to the callers vruntime value
+// Returns 0
 uint64 sys_getruntime(void){
 	uint64 runtime;
 	uint64 vruntime;
 	struct proc* mp;
 	
-	mp = myproc();
+	mp = myproc(); //get the current process
 	
+	//get the arguments
 	argaddr(0, &runtime);
 	argaddr(1, &vruntime);	
 
+	//update the arguments to the new values
 	copyout(mp->pagetable, runtime, (char*)&(mp->runtime), sizeof(mp->runtime));
 	copyout(mp->pagetable, vruntime, (char*)&(mp->vruntime), sizeof(mp->vruntime));
 	return 0;
 }
 
+// Attempts to start cfs by setting the cfs variable in proc.h (proc.c) to 1
+// Updates cfs_sched_latency to the first arugment (latency)
+// Updates cfs_max_timeslice to the second argument (max)
+// Updates cfs_min_timeslice to the third argument (min)
+// Returns 1
 uint64 sys_startcfs(void){
 	int late;
 	int max;
@@ -134,6 +147,8 @@ uint64 sys_startcfs(void){
 	return 1;
 }
 
+// Stops cfs by setting cfs variable in proc.h (proc.c) to 0
+// Returns 1
 uint64 sys_stopcfs(void){
 	cfs = 0;
 	return 1;
