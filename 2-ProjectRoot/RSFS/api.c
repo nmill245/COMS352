@@ -220,7 +220,7 @@ int RSFS_open(char file_name, int access_flag) {
     if (entry->used == 0) {
       index = i;
       pthread_mutex_lock(&entry->entry_mutex);
-      printf("Updated entry %d to be used for file (%c)\n", i, file_name);
+      // printf("Updated entry %d to be used for file (%c)\n", i, file_name);
       entry->used = 1;
       entry->position = 0;
       entry->access_flag = access_flag;
@@ -265,8 +265,10 @@ int RSFS_append(int fd, void *buf, int size) {
   }
 
   // to do: get the current position
+  int pos = entry->position;
 
   // to do: get the inode
+  int inode_number = entry->inode_number;
 
   // to do: append the content in buf to the data blocks of the file
   //  from the end of the file; allocate new block(s) when needed
@@ -283,18 +285,34 @@ int RSFS_append(int fd, void *buf, int size) {
 int RSFS_fseek(int fd, int offset) {
 
   // to do: sanity test of fd; if fd is not valid, return -1
+  if (fd < 0 || fd > NUM_OPEN_FILE) {
+    return -1;
+  }
 
   // to do: get the correspondng open file entry
+  pthread_mutex_lock(&open_file_table_mutex);
+  struct open_file_entry *entry = &open_file_table[fd];
+  pthread_mutex_unlock(&open_file_table_mutex);
 
   // to do: get the current position
+  int pos = entry->position;
 
   // to do: get the inode and file length
+  int inode_num = entry->inode_number;
+  int length = inodes[inode_num].length;
 
   // to do: check if argument offset is not within 0...length,
   //  do not proceed and return current position
+  if (offset < 0 || offset > length) {
+    return pos;
+  }
 
   // to do: update the current position to offset, and
   //  return the new current position
+  pthread_mutex_lock(&entry->entry_mutex);
+  entry->position = offset;
+  pthread_mutex_unlock(&entry->entry_mutex);
+  return entry->position;
 }
 
 // read up to size bytes to buf from file's current position towards the end
