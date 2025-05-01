@@ -269,14 +269,67 @@ int RSFS_append(int fd, void *buf, int size) {
 
   // to do: get the inode
   int inode_number = entry->inode_number;
+  struct inode *cur_inode = &inodes[inode_number];
+
+  // figure out which "block" we are on
+  int block_num = pos / BLOCK_SIZE;
+  // get that block number
+  int offset = pos % BLOCK_SIZE;
+  // keep track of how much we have to add
+  int to_add = size;
+  char *cur_buf = buf;
+  // keep track of how much space is left
+  int length_left = NUM_POINTERS * BLOCK_SIZE - cur_inode->length;
 
   // to do: append the content in buf to the data blocks of the file
   //  from the end of the file; allocate new block(s) when needed
   //  - (refer to lecture L22 on how)
+  while (to_add > 0 && block_num < NUM_POINTERS && length_left > 0) {
+    char i_block = cur_inode->block[block_num];
+    char *cur_block;
+    int min_addition = BLOCK_SIZE - offset;
+    if (i_block < 0) {
+      int i;
+      for (i = 0; i < NUM_DBLOCKS; i++) {
+        if (data_bitmap[i] == 0) {
+          pthread_mutex_lock(&data_bitmap_mutex);
+          data_bitmap[i] = 1;
+          pthread_mutex_unlock(&data_bitmap_mutex);
+          break;
+        }
+      }
+      cur_block = data_blocks[i];
+      cur_inode->block[block_num] = i;
+      offset = 0;
+    } else {
+      cur_block = data_blocks[i_block];
+    }
+    if (!cur_block) {
+      break;
+    }
+    if (to_add < min_addition) {
+      min_addition = to_add;
+    }
+    if (length_left < min_addition) {
+      min_addition = length_left;
+    }
+    strncat(cur_block, cur_buf, min_addition);
+    cur_buf += min_addition;
+    to_add -= (min_addition);
+    length_left -= (min_addition);
+    cur_inode->length += min_addition;
+    if (min_addition == (BLOCK_SIZE - offset)) {
+      block_num++;
+    }
+  }
 
   // to do: update the current position in open file entry
 
+  pthread_mutex_lock(&entry->entry_mutex);
+  entry->position = (pos + (size - to_add));
+  pthread_mutex_unlock(&entry->entry_mutex);
   // to do: return the number of bytes appended to the file
+  return size - to_add;
 }
 
 // update current position of the file (which is in the open_file_entry) to
@@ -321,18 +374,59 @@ int RSFS_fseek(int fd, int offset) {
 int RSFS_read(int fd, void *buf, int size) {
 
   // to do: sanity test of fd and size (the size should not be negative)
+  if (fd < 0 || fd > NUM_OPEN_FILE || size < 0) {
+    return -1;
+  }
 
   // to do: get the corresponding open file entry
+  pthread_mutex_lock(&open_file_table_mutex);
+  struct open_file_entry *entry = &open_file_table[fd];
+  pthread_mutex_unlock(&open_file_table_mutex);
 
   // to do: get the current position
+  int pos = entry->position;
 
   // to do: get the corresponding inode
-
+  int inode_number = entry->inode_number;
+  struct inode cur_inode = inodes[inode_number];
   // to do: read from the file
+  int block_num = pos / BLOCK_SIZE;
+  if (cur_inode.block[block_num] < 0) {
+    return 0;
+  }
+  char *block = data_blocks[cur_inode.block[block_num]];
+  int offset = pos % BLOCK_SIZE;
+
+  if (block < 0) {
+    return 0;
+  }
+  int read = 0;
+  int total = pos;
+  char *info = malloc(size + 1);
+  while (read < size && block >= 0 && total < cur_inode.length) {
+    for (; offset < BLOCK_SIZE; offset++) {
+      info[read] = block[offset];
+      read++;
+      pos++;
+    }
+    block_num++;
+    if (cur_inode.block[block_num] < 0) {
+      break;
+    }
+    block = data_blocks[cur_inode.block[block_num]];
+    offset = 0;
+  }
+  info[read] = '\0';
+  strcat(buf, info);
+  free(info);
 
   // to do: update the current position in open file entry
+  pthread_mutex_lock(&entry->entry_mutex);
+  entry->position = total;
+  pthread_mutex_unlock(&entry->entry_mutex);
 
   // to do: return the actual number of bytes read
+  return read;
 }
 
 // close file: return 0 if succeed; otherwise return -1

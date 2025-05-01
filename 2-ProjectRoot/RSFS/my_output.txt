@@ -40,7 +40,7 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 8,  Unused: 0
-Total Opened Files:   0
+Total Opened Files:   7
 
 [test_basic] have appended to each of the opened files.
 
@@ -57,15 +57,8 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 8,  Unused: 0
-Total Opened Files:   0
+Total Opened Files:   7
 
-[test_basic] fail to close file: Alice.
-[test_basic] fail to close file: Bob.
-[test_basic] fail to close file: Charlie.
-[test_basic] fail to close file: David.
-[test_basic] fail to close file: Elaine.
-[test_basic] fail to close file: Frank.
-[test_basic] fail to close file: George.
 [test_basic] have closed each of the opened files.
 
 Current status of the file system:
@@ -99,7 +92,7 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 8,  Unused: 0
-Total Opened Files:   0
+Total Opened Files:   7
 
 File 'A' content: 
 File 'B' content: 
@@ -169,7 +162,7 @@ Total Opened Files:   0
 
 --------Test for Concurrent Readers/Writers-----------
 
-[writer 0] open file A with RDWR; return fd=7.
+[reader 0] open file A with READONLY; return fd=0.
 
 Current status of the file system:
 
@@ -178,21 +171,10 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
+Total Opened Files:   1
 
-[writer 0] append 7 bytes of string.
-[writer 0] read 7 bytes of string: 
-
-Current status of the file system:
-
-        File Name    Length   iNode #
-               A         0         1
-
-Total Data Blocks:   64,  Used: 1,  Unused: 63
-Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
-
-[reader 0] open file A with READONLY; return fd=7.
+[reader 0] fail to read anything.
+[writer 0] open file A with RDWR; return fd=1.
 
 Current status of the file system:
 
@@ -201,22 +183,10 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
+Total Opened Files:   2
 
-[reader 0] read 7 bytes of string: 
-[writer 1] open file A with RDWR; return fd=7.
-
-Current status of the file system:
-
-        File Name    Length   iNode #
-               A         0         1
-
-Total Data Blocks:   64,  Used: 1,  Unused: 63
-Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
-
-[writer 1] append 7 bytes of string.
-[writer 1] read 7 bytes of string: 
+[write 0] fail to append anything.
+[writer 0] fail to read anything.
 
 Current status of the file system:
 
@@ -225,21 +195,9 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
+Total Opened Files:   2
 
-[reader 1] open file A with READONLY; return fd=7.
-
-Current status of the file system:
-
-        File Name    Length   iNode #
-               A         0         1
-
-Total Data Blocks:   64,  Used: 1,  Unused: 63
-Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
-
-[reader 1] read 7 bytes of string: 
-[reader 2] open file A with READONLY; return fd=7.
+[writer 1] open file A with RDWR; return fd=2.
 
 Current status of the file system:
 
@@ -248,22 +206,10 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
+Total Opened Files:   3
 
-[reader 2] read 7 bytes of string: 
-[reader 3] open file A with READONLY; return fd=7.
-
-Current status of the file system:
-
-        File Name    Length   iNode #
-               A         0         1
-
-Total Data Blocks:   64,  Used: 1,  Unused: 63
-Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
-
-[reader 3] read 7 bytes of string: 
-[reader 0] close the file.
+[write 1] fail to append anything.
+[writer 1] fail to read anything.
 
 Current status of the file system:
 
@@ -272,9 +218,46 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
+Total Opened Files:   3
 
+[reader 1] open file A with READONLY; return fd=3.
+
+Current status of the file system:
+
+        File Name    Length   iNode #
+               A         0         1
+
+Total Data Blocks:   64,  Used: 1,  Unused: 63
+Total iNode Blocks:   8,  Used: 2,  Unused: 6
+Total Opened Files:   4
+
+[reader 1] fail to read anything.
+[reader 2] open file A with READONLY; return fd=4.
+
+Current status of the file system:
+
+        File Name    Length   iNode #
+               A         0         1
+
+Total Data Blocks:   64,  Used: 1,  Unused: 63
+Total iNode Blocks:   8,  Used: 2,  Unused: 6
+Total Opened Files:   5
+
+[reader 2] fail to read anything.
+[reader 3] open file A with READONLY; return fd=5.
+
+Current status of the file system:
+
+        File Name    Length   iNode #
+               A         0         1
+
+Total Data Blocks:   64,  Used: 1,  Unused: 63
+Total iNode Blocks:   8,  Used: 2,  Unused: 6
+Total Opened Files:   6
+
+[reader 3] fail to read anything.
 [writer 0] close the file.
+[reader 0] close the file.
 [reader 1] close the file.
 
 Current status of the file system:
@@ -284,7 +267,17 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
+Total Opened Files:   4
+
+
+Current status of the file system:
+
+        File Name    Length   iNode #
+               A         0         1
+
+Total Data Blocks:   64,  Used: 1,  Unused: 63
+Total iNode Blocks:   8,  Used: 2,  Unused: 6
+Total Opened Files:   3
 
 [writer 1] close the file.
 [reader 2] close the file.
@@ -296,7 +289,7 @@ Current status of the file system:
 
 Total Data Blocks:   64,  Used: 1,  Unused: 63
 Total iNode Blocks:   8,  Used: 2,  Unused: 6
-Total Opened Files:   0
+Total Opened Files:   1
 
 [reader 3] close the file.
 
