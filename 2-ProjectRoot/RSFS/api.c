@@ -454,4 +454,84 @@ int RSFS_close(int fd) {
 }
 
 // write the content of size (bytes) in buf to the file (of descripter fd)
-int RSFS_write(int fd, void *buf, int size) {}
+int RSFS_write(int fd, void *buf, int size) {
+  char *debug_title = "[RSFS_write]";
+
+  // to do: check the sanity of the arguments:
+  //  fd should be in [0,NUM_OPEN_FILE] and size>0.
+  if (fd < 0 || fd > NUM_OPEN_FILE || size < 0) {
+    printf("%s fd: %d out of limits, or size: %d too small", debug_title, fd,
+           size);
+    return 0;
+  }
+
+  // to do: get the open file entry corresponding to fd
+  pthread_mutex_lock(&open_file_table_mutex);
+  struct open_file_entry *entry = &open_file_table[fd];
+  pthread_mutex_unlock(&open_file_table_mutex);
+  // to do: check if the file is opened with RSFS_RDWR mode;
+  //  otherwise return 0
+  if (entry->access_flag != RSFS_RDWR) {
+    printf("%s file not open with RSFS_RDWR", debug_title);
+    return 0;
+  }
+
+  // to do: get the inode
+  int inode_number = entry->inode_number;
+  struct inode *cur_inode = &inodes[inode_number];
+  int pos = entry->position;
+  int block_num = pos / BLOCK_SIZE;
+  int offset = pos % BLOCK_SIZE;
+
+  int written = pos;
+
+  int to_add = size;
+  char *cur_buf = buf;
+  // keep track of how much space is left
+  int length_left = NUM_POINTERS * BLOCK_SIZE - cur_inode->length;
+
+  // to do: append the content in buf to the data blocks of the file
+  //  from the end of the file; allocate new block(s) when needed
+  //  - (refer to lecture L22 on how)
+  while (to_add > 0 && block_num < NUM_POINTERS && length_left > 0) {
+    char i_block = cur_inode->block[block_num];
+    char *cur_block;
+    int min_addition = BLOCK_SIZE - offset;
+    if (i_block < 0) {
+      int i;
+      for (i = 0; i < NUM_DBLOCKS; i++) {
+        if (data_bitmap[i] == 0) {
+          pthread_mutex_lock(&data_bitmap_mutex);
+          data_bitmap[i] = 1;
+          pthread_mutex_unlock(&data_bitmap_mutex);
+          break;
+        }
+      }
+      cur_block = data_blocks[i];
+      cur_inode->block[block_num] = i;
+      offset = 0;
+    } else {
+      cur_block = data_blocks[i_block];
+    }
+    if (!cur_block) {
+      break;
+    }
+    if (to_add < min_addition) {
+      min_addition = to_add;
+    }
+    if (length_left < min_addition) {
+      min_addition = length_left;
+    }
+    strncpy(cur_block + offset, cur_buf, min_addition);
+    cur_buf += min_addition;
+    to_add -= (min_addition);
+    length_left -= (min_addition);
+    written += min_addition;
+    if (min_addition == (BLOCK_SIZE - offset)) {
+      block_num++;
+      offset = 0;
+    }
+  }
+  cur_inode->length = written;
+  return size - to_add;
+}
