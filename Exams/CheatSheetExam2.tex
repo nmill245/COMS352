@@ -1,0 +1,107 @@
+\documentclass[3pt]{article}
+
+\usepackage{amsmath,amsthm,amssymb,amsfonts,mathrsfs,bbm}
+\usepackage[margin=0.15in]{geometry}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\tb}{\textbf}
+\newcommand{\tn}{\textnormal}
+\newcommand{\ti}{\textit}
+
+\pagestyle{empty}
+
+\begin{document}
+\noindent
+PCB (Process control block):
+A structure outside of the process for the OS to keep track of all the information regarding the process such as address space, registers, program counter, etc.,
+pipe() $\rightarrow$ initializes a pipe to be used by two different programs to allow information to be passed. Returns -1 on fail.,
+dup() $\rightarrow$ changes where the file descriptor points. Returns -1 on fail.
+Trap $\rightarrow$ System calls cause a trap which the OS handles, doing the instruction most likely, and then goes back to User Mode.
+\\
+Turnaround time:
+$T_{completion} - T_{arrival}$,
+Response time:
+$T_{first\_response}-T_{arrival}$,
+\\
+STCF:
+Shortest Time-to-Completion First: priority queue based off time to finish, will preempt if another job shows up with shorter time to completion,
+Lottery:
+Each process gets a random amount of tickets (can be inverse proportional completion time) that OS picks a random ticket to give the time slice,
+Stride:
+Deterministic solution to lottery, requires states, gives each process a stride amount based off time to finish. grabs the process with the smallest stride and increments the process\' pass count by the stride of the process.,
+CFS:
+Linux Scheduler: uses sched\_latency (amount of ms for all processes to run), min\_granularity (min amount of time for one process to run), n (number of process),
+nice score (more nice $=$ less weight) to decide that time slice k $=$ sched\_latency * weight k / (weight 0 + weight 1 + $\cdots$ + weight n-1) and
+vruntime k = vruntime k + runtime * weight 0 / weight k; thus vruntime is counted less per shed\_latency with higher weight even if physical runtime is longer. Uses red black tree to self balence, and any new process gets the smallest vruntime of any of the existing processes
+\\
+Priority boost (MLFQ)
+After S time, return all processes to the highest priority
+\\
+Virtual runtime (CFS)
+The actual time counted instead of physical runtime,
+Nice value (CFS)
+Higher nice is lower weight
+\\
+Base and Bound
+Base = the start of the physical address location, bound = max address location, can be virtual or phyiscal. A problem is that if a program needs to use more memory than originally allocated, a lot of updates need to be done.
+\\
+Best fit (free-space management policy)
+A way to decide how to fill segements, will look for the smallest one that still meets the memory requirement.
+\\
+Physical address = virtual address + offset
+\\
+TLB (Translation-Lookaside Buffer)
+A cache of page table lookups to makes address translation much faster,
+TLB cache entry
+A line in the TLB that translates VPN to PFN, along with a valid bit,
+Valid bit (TLB cache entry)
+Shows if the cache line is valid, does not say anything about the page table entry valid bit,
+Present bit (swap)
+If the current page is in memory (1) or on disk (0)
+\\
+High watermark
+The amount of free memory to stop swapping from low watermark, which is the minimum amount of free memory
+\\
+Reference string
+A sequence of attempted accesses to model their accesses in different replacement policies,
+OPT (optimal)
+The optimal cache removal based off the reference string
+\\
+Clock Algorithm
+An attempted LRU without lookups to see which was last used. Add a "use bit" to each entry of the cache. Set 1 when line is used. round robin, setting to 0 when 1 is found, otherwise removing the first 0
+\\
+Belady’s Anomaly
+How in FIFO there are cases when larger cache means more misses
+\\
+pthread\_create(pthread\_t *thread, const pthread\_attr\_t attr, void *(*start\_routine) (void*), void* arg)
+Creates a new thread with thread pointing to a buffer to store the id of the new thread, attr describes the attributes of the new thread, starts by invoking start\_routine arg is a pointer to arguments for start\_routine. Returns 0 on success, errror number on error,
+pthread\_join(pthread\_t th, void **retval)
+Wait for a thread to terminate and will add the exit status to the location at retval if not null. 0 on success, error number on error. also deallocates TCB of whatever thread terminated,
+pthread\_mutex\_lock(pthread\_mutex\_t * mutex, const pthread\_mutexattr\_t * mutexattr)
+initalizes a mutex lock, mutex points to the lock, second attribute describes the lock, returns 0 on succcess, error number otherwise,
+pthread\_mutex\_unlock(pthread\_mutex\_t *mutex)
+destroys the mutex, attempting to destroy locked mutex results in undefined behavior,
+\\
+test-and-set
+A process of determing if a lock is locked or unlocked by testing the value of a pointer, and setting it to a new value,
+Spinning loops
+What is imployed in a spin lock, which is looping for a lock
+\\
+pthread\_cond\_wait(pthread\_cond\_t *c, pthread\_mutex\_t *m)
+waits for signal to condition c, releases m in while waiting,
+pthread\_cond\_signal(pthread\_cond\_t *c)
+Signals on the condition, waking waiting threads,
+\\
+Producer/consumer (bounded buffer) problem
+Consider 2 conumers and 1 producer. Producer puts one 1, then signals that item has been placed. If solved incorrectly both c1 and c2 will attempt to get, causing an error. p1 could also attempt to put on a full buffer.
+Fix is to signal both empty and full.
+\\
+sem\_init(sem\_t *s, attr, num of resources)
+must init with number of resources, generates a new semaphore at s with attributes and number of resources as described.,
+sem\_wait(sem\_t *s)
+will wait until s has at least 1 resource,
+sem\_post(sem\_t *s)
+will free up one resource of s,
+\end{document}

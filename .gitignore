@@ -6,3 +6,7 @@ _*
 */fs.img
 indent.log
 kernel/kernel
+*.aux
+*.gz
+*.fls
+*.fdb_latexmk
